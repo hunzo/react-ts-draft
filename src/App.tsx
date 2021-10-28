@@ -2,16 +2,18 @@ import {
     AtomicBlockUtils,
     convertToRaw,
     DraftEditorCommand,
-    Editor,
     EditorState,
     getDefaultKeyBinding,
     Modifier,
     RichUtils,
 } from 'draft-js'
-import React, { ChangeEvent, useState } from 'react'
+import React, { ChangeEvent, useCallback, useRef, useState } from 'react'
 import './App.css'
 import { useEditor } from './editorContext'
 import { handleBlockRenderer } from './MediaRenderer'
+import Editor, { composeDecorators } from '@draft-js-plugins/editor'
+import createFocusPlugin from '@draft-js-plugins/focus'
+import HtmlModal from './HtmlModal'
 
 interface selecTion {
     offset: number
@@ -30,6 +32,17 @@ export interface Images {
 const App: React.FC = () => {
     const { editorState, setEditorState } = useEditor()
     const [images, setImages] = useState<Images[]>([])
+    const editor = useRef<Editor>(null)
+
+    const focusPlugin = createFocusPlugin();
+    const plugins = [focusPlugin];
+
+    const focusEditor = useCallback(() => {
+        if (editor.current) {
+            console.log('in Focus')
+            editor.current.focus()
+        }
+    }, [editor])
 
     const [selecState, setSelectState] = useState<selecTion>({
         offset: 0,
@@ -50,7 +63,8 @@ const App: React.FC = () => {
 
     const handleKeyBindingFn = (e: React.KeyboardEvent) => {
         if (e.key === 'Tab') {
-            const tabCharactor = '    '
+            const tabCharactor = '  '
+            // const tabCharactor = '\t'
             const newContentState = Modifier.replaceText(
                 editorState.getCurrentContent(),
                 editorState.getSelection(),
@@ -60,7 +74,7 @@ const App: React.FC = () => {
                 EditorState.push(
                     editorState,
                     newContentState,
-                    'insert-characters'
+                    'change-inline-style'
                 )
             )
             return 'Tab'
@@ -71,10 +85,8 @@ const App: React.FC = () => {
     const handleChanges = (state: EditorState) => {
         setEditorState(state)
         const select = state.getSelection()
-        
-        console.log(
-            state.getCurrentContent().getBlockMap()
-        )
+
+        console.log(state.getCurrentContent().getBlockMap())
         setSelectState({
             offset: select.getAnchorOffset(),
             focusOffset: select.getFocusOffset(),
@@ -147,6 +159,7 @@ const App: React.FC = () => {
             >
                 add image
             </button>
+            <HtmlModal />
             <div className="editor">
                 {images.map((i, idx) => (
                     <p style={{ margin: '0', padding: '0' }} key={idx}>
@@ -156,13 +169,15 @@ const App: React.FC = () => {
                 ))}
             </div>
 
-            <div className="editor">
+            <div className="editor" onClick={focusEditor}>
                 <Editor
+                    ref={editor}
                     editorState={editorState}
                     onChange={handleChanges}
                     handleKeyCommand={handleKeyCommand}
                     keyBindingFn={handleKeyBindingFn}
                     blockRendererFn={handleBlockRenderer}
+                    plugins={plugins}
                 />
             </div>
 
