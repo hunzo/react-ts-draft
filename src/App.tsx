@@ -6,13 +6,12 @@ import {
     getDefaultKeyBinding,
     Modifier,
     RichUtils,
+    Editor
 } from 'draft-js'
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react'
 import './App.css'
 import { useEditor } from './editorContext'
 import { handleBlockRenderer } from './MediaRenderer'
-import Editor, { composeDecorators } from '@draft-js-plugins/editor'
-import createFocusPlugin from '@draft-js-plugins/focus'
 import HtmlModal from './HtmlModal'
 
 interface selecTion {
@@ -35,9 +34,6 @@ const App: React.FC = () => {
     const { editorState, setEditorState } = useEditor()
     const [images, setImages] = useState<Images[]>([])
     const editor = useRef<Editor>(null)
-
-    const focusPlugin = createFocusPlugin();
-    const plugins = [focusPlugin];
 
     const focusEditor = useCallback(() => {
         if (editor.current) {
@@ -65,7 +61,7 @@ const App: React.FC = () => {
 
     const handleKeyBindingFn = (e: React.KeyboardEvent) => {
         if (e.key === 'Tab') {
-            const tabCharactor = '  '
+            const tabCharactor = '    '
             // const tabCharactor = '\t'
             const newContentState = Modifier.replaceText(
                 editorState.getCurrentContent(),
@@ -88,7 +84,7 @@ const App: React.FC = () => {
         setEditorState(state)
         const select = state.getSelection()
 
-        console.log(state.getCurrentContent().getBlockMap())
+        // console.log(state.getCurrentContent().getBlockMap())
         setSelectState({
             offset: select.getAnchorOffset(),
             focusOffset: select.getFocusOffset(),
@@ -107,7 +103,7 @@ const App: React.FC = () => {
                 fileType: file.type,
                 fileSize: file.size,
                 base64Contents: reader.result as string,
-                width: 600,
+                width: 450,
                 alignment: "center"
             }
             const constentStateWithEntity = editorState
@@ -128,23 +124,23 @@ const App: React.FC = () => {
         reader.readAsDataURL(e.target.files[0])
     }
 
-    const setSelection = (offset: number, focusOffet: number) => {
-        const selectionState = editorState.getSelection()
-        const newSelection = selectionState.merge({
-            anchorOffset: offset,
-            focusOffset: focusOffet,
-        })
+    // const setSelection = (offset: number, focusOffet: number) => {
+    //     const selectionState = editorState.getSelection()
+    //     const newSelection = selectionState.merge({
+    //         anchorOffset: offset,
+    //         focusOffset: focusOffet,
+    //     })
 
-        const newEditorState = EditorState.forceSelection(
-            editorState,
-            newSelection
-        )
-        setEditorState(newEditorState)
-    }
+    //     const newEditorState = EditorState.forceSelection(
+    //         editorState,
+    //         newSelection
+    //     )
+    //     setEditorState(newEditorState)
+    // }
 
     return (
         <div className="App">
-            <p>
+            <p style={{marginLeft: "1rem"}}>
                 <span>
                     #selection offset: {selecState.offset} focusOffset:{' '}
                     blockKey: {selecState.blockKey}
@@ -181,7 +177,6 @@ const App: React.FC = () => {
                     handleKeyCommand={handleKeyCommand}
                     keyBindingFn={handleKeyBindingFn}
                     blockRendererFn={handleBlockRenderer}
-                    plugins={plugins}
                 />
             </div>
 
@@ -193,7 +188,7 @@ const App: React.FC = () => {
 
             <pre className="editor">
                 {JSON.stringify(
-                    convertToRaw(editorState.getCurrentContent()),
+                    convertToRaw(editorState.getCurrentContent()).entityMap,
                     null,
                     4
                 )}

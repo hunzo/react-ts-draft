@@ -1,5 +1,4 @@
 import { convertToHTML } from 'draft-convert'
-import { convertToRaw } from 'draft-js'
 import React, { useState } from 'react'
 import Modal from 'react-modal'
 import { useEditor } from './editorContext'
@@ -10,31 +9,27 @@ const HtmlModal: React.FC = () => {
     const html = convertToHTML({
         entityToHTML: (entity) => {
             if (entity.type === 'image') {
-                // console.log(entity.data)
-
-                // const alignment = entity.data.alignment || 'none' || 'undefined'
-                // const textAlign = alignment === 'none' ? 'center' : alignment
-
-                console.log(entity.data.base64Contents)
-
-                return `
-                    <p style="${entity.data.alignment}">
-                        <img
-                            src="${entity.data.base64Contents}"
-                            width="${300}"
-                            height="${entity.data.height}"
-                            alt="http://www.google.co.th"
-                        />
+                const { alignment, width, alt, base64Contents } = entity.data
+                return (
+                    <p style={{ textAlign: alignment }}>
+                        <img src={base64Contents} alt={alt} width={width} />
                     </p>
-                `
+                )
             }
         },
         blockToHTML: (block) => {
-
-            if (block.type === "unstyled") {
-                return <div />
+            if (block.type === 'unstyled') {
+                return (
+                    <p
+                        style={{
+                            margin: '1px 0 1px 0',
+                            padding: '0',
+                            whiteSpace: 'pre-wrap',
+                        }}
+                    />
+                )
             }
-        }
+        },
     })(editorState.getCurrentContent())
 
     return (
@@ -45,26 +40,19 @@ const HtmlModal: React.FC = () => {
             >
                 html preview
             </button>
-            <Modal isOpen={modal}>
+            <Modal isOpen={modal} ariaHideApp={false}>
                 <button onClick={() => setModal(false)}>close</button>
+                <p>
+                    <strong>Generate HTML from RTF</strong>
+                </p>
                 <div
+                    style={{ border: '1px solid #e1e1e1' }}
                     dangerouslySetInnerHTML={{
                         __html: html,
                     }}
                 />
-                <pre>
-                    {JSON.stringify(
-                        convertToHTML(editorState.getCurrentContent()),
-                        null,
-                        2
-                    )}
-                </pre>
-                <pre>
-                    {JSON.stringify(
-                        convertToRaw(editorState.getCurrentContent()),
-                        null,
-                        2
-                    )}
+                <pre style={{ display: 'block', border: '1px solid #e1e1e1' }}>
+                    {JSON.stringify(html, null, 2)}
                 </pre>
             </Modal>
         </>
