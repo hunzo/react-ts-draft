@@ -27,6 +27,8 @@ export interface Images {
     fileSize: number
     fileType: string
     base64Contents: string
+    width?: number
+    alignment?: string
 }
 
 const App: React.FC = () => {
@@ -105,6 +107,8 @@ const App: React.FC = () => {
                 fileType: file.type,
                 fileSize: file.size,
                 base64Contents: reader.result as string,
+                width: 600,
+                alignment: "center"
             }
             const constentStateWithEntity = editorState
                 .getCurrentContent()
