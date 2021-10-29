@@ -1,5 +1,6 @@
 import { EditorState } from 'draft-js'
 import { createContext, useContext, useState } from 'react'
+import { LinkDecorator } from './MediaComponent'
 
 interface GlobalState {
     editorState: EditorState
@@ -9,7 +10,7 @@ interface GlobalState {
 export const editorContext = createContext<GlobalState | undefined>(undefined)
 
 export const EditorProvider: React.FC = ({ children }) => {
-    const [editorState, setEditorState] = useState(EditorState.createEmpty())
+    const [editorState, setEditorState] = useState(EditorState.createEmpty(LinkDecorator))
     return (
         <editorContext.Provider value={{ editorState, setEditorState }}>
             {children}

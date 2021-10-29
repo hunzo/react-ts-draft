@@ -6,7 +6,7 @@ import {
     getDefaultKeyBinding,
     Modifier,
     RichUtils,
-    Editor
+    Editor,
 } from 'draft-js'
 import React, { ChangeEvent, useCallback, useRef, useState } from 'react'
 import './App.css'
@@ -104,7 +104,7 @@ const App: React.FC = () => {
                 fileSize: file.size,
                 base64Contents: reader.result as string,
                 width: 450,
-                alignment: "center"
+                alignment: 'center',
             }
             const constentStateWithEntity = editorState
                 .getCurrentContent()
@@ -123,6 +123,40 @@ const App: React.FC = () => {
         }
         reader.readAsDataURL(e.target.files[0])
     }
+    const handleAddLink = () => {
+        const selection = editorState.getSelection()
+        const link = prompt(
+            'please insert image link (ex. https://www.google.co.th)'
+        )
+        if (!link) {
+            setEditorState(RichUtils.toggleLink(editorState, selection, null))
+            return
+        }
+        const contentState = editorState.getCurrentContent()
+        const contentStateWithEntity = contentState.createEntity(
+            'link',
+            'MUTABLE',
+            {
+                url: link,
+            }
+        )
+        const newEditorState = EditorState.push(
+            editorState,
+            contentStateWithEntity,
+            'apply-entity'
+        )
+        const entityKey = contentStateWithEntity.getLastCreatedEntityKey()
+        setEditorState(
+            RichUtils.toggleLink(newEditorState, selection, entityKey)
+        )
+    }
+
+    const handleRemoveLink = () => {
+        const selection = editorState.getSelection()
+        if (!selection.isCollapsed()) {
+            setEditorState(RichUtils.toggleLink(editorState, selection, null))
+        }
+    }
 
     // const setSelection = (offset: number, focusOffet: number) => {
     //     const selectionState = editorState.getSelection()
@@ -140,7 +174,7 @@ const App: React.FC = () => {
 
     return (
         <div className="App">
-            <p style={{marginLeft: "1rem"}}>
+            <p style={{ marginLeft: '1rem' }}>
                 <span>
                     #selection offset: {selecState.offset} focusOffset:{' '}
                     blockKey: {selecState.blockKey}
@@ -148,7 +182,6 @@ const App: React.FC = () => {
                     {selecState.isBackward ? 'true' : 'false'}
                 </span>
             </p>
-
             <h3 style={{ marginLeft: '1rem' }}>editor</h3>
             <button
                 style={{ marginLeft: '1rem' }}
@@ -159,16 +192,42 @@ const App: React.FC = () => {
             >
                 add image
             </button>
+            <button
+                disabled={editorState.getSelection().isCollapsed()}
+                style={{ marginLeft: '.3rem' }}
+                onMouseDown={(e) => {
+                    e.preventDefault()
+                    handleAddLink()
+                }}
+            >
+                add link
+            </button>
+            <button
+                disabled={editorState.getSelection().isCollapsed()}
+                style={{ marginLeft: '.3rem' }}
+                onMouseDown={(e) => {
+                    e.preventDefault()
+                    handleRemoveLink()
+                }}
+            >
+                remove link
+            </button>{' '}
             <HtmlModal />
-            <div className="editor">
+            <div style={{marginTop: "1rem"}}>
                 {images.map((i, idx) => (
-                    <p style={{ margin: '0', padding: '0' }} key={idx}>
+                    <p
+                        style={{
+                            margin: '0',
+                            marginLeft: '1rem',
+                            padding: '0',
+                        }}
+                        key={idx}
+                    >
                         file_name: {i.fileName} file_size: {i.fileSize}{' '}
                         file_type: {i.fileType}
                     </p>
                 ))}
             </div>
-
             <div className="editor" onClick={focusEditor}>
                 <Editor
                     ref={editor}
@@ -179,13 +238,10 @@ const App: React.FC = () => {
                     blockRendererFn={handleBlockRenderer}
                 />
             </div>
-
             <h3 style={{ marginLeft: '1rem' }}>PainText</h3>
-
             <pre className="editor">
                 {editorState.getCurrentContent().getPlainText()}
             </pre>
-
             <pre className="editor">
                 {JSON.stringify(
                     convertToRaw(editorState.getCurrentContent()).entityMap,
@@ -193,7 +249,6 @@ const App: React.FC = () => {
                     4
                 )}
             </pre>
-
             <input
                 id="inputImage"
                 style={{ display: 'none' }}

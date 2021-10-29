@@ -1,4 +1,10 @@
-import { ContentBlock, ContentState, EditorState } from 'draft-js'
+import {
+    CompositeDecorator,
+    ContentBlock,
+    ContentState,
+    DraftDecoratorComponentProps,
+    EditorState,
+} from 'draft-js'
 import React, { CSSProperties, useState } from 'react'
 import { useEditor } from './editorContext'
 
@@ -7,7 +13,42 @@ interface BlockComponentProps {
     block: ContentBlock
 }
 
-export const MediaComponent: React.FC<BlockComponentProps> = ({
+export const MediaComponent: React.FC<BlockComponentProps> = (
+    props: BlockComponentProps
+) => {
+    const entity = props.contentState.getEntity(props.block.getEntityAt(0))
+    let media = null
+
+    switch (entity.getType()) {
+        case 'image':
+            media = <ImageComponent {...props} />
+            break
+        // ex. video, embended, link
+        // case 'link':
+        //     console.log('Link case')
+        //     break
+        default:
+            media = null
+            break
+    }
+
+    return media
+}
+
+export const LinkComponent: React.FC<DraftDecoratorComponentProps> = ({
+    children,
+    contentState,
+    entityKey
+}) => {
+    const { url } = contentState.getEntity(entityKey || "").getData()
+    return (
+        <a style={{ color: 'red', textDecoration: 'underline', cursor: "pointer" }} href={url}>
+            {children}
+        </a>
+    )
+}
+
+export const ImageComponent: React.FC<BlockComponentProps> = ({
     contentState,
     block,
 }) => {
@@ -83,10 +124,25 @@ export const MediaComponent: React.FC<BlockComponentProps> = ({
                         >
                             +
                         </button>
-                        <p>#info width: {imgSize} alignment: {alignment}</p>
+                        <p>
+                            #info width: {imgSize} alignment: {alignment}
+                        </p>
                     </div>
                 ) : null}
             </span>
         </>
     )
 }
+
+export const LinkDecorator = new CompositeDecorator([
+    {
+        component: LinkComponent,
+        strategy: (contentBlock, callBack, contentState) => {
+            contentBlock.findEntityRanges((character) => {
+                const entityKey = character.getEntity()
+                return entityKey !== null && contentState.getEntity(entityKey).getType() === "link"
+            }, callBack)
+        },
+    },
+])
+

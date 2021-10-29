@@ -7,7 +7,7 @@ const HtmlModal: React.FC = () => {
     const [modal, setModal] = useState(false)
     const { editorState } = useEditor()
     const html = convertToHTML({
-        entityToHTML: (entity) => {
+        entityToHTML: (entity, text) => {
             if (entity.type === 'image') {
                 const { alignment, width, alt, base64Contents } = entity.data
                 return (
@@ -15,6 +15,11 @@ const HtmlModal: React.FC = () => {
                         <img src={base64Contents} alt={alt} width={width} />
                     </p>
                 )
+            }
+            if (entity.type === 'link') {
+                const {url} = entity.data
+                // console.log('convert link')
+                return <a  rel="noreferrer" target="_blank"  href={url}>{text}</a>;
             }
         },
         blockToHTML: (block) => {
@@ -30,6 +35,7 @@ const HtmlModal: React.FC = () => {
                 )
             }
         },
+        
     })(editorState.getCurrentContent())
 
     return (
