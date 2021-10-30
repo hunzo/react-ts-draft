@@ -7,6 +7,7 @@ import {
 } from 'draft-js'
 import React, { CSSProperties, useState } from 'react'
 import { useEditor } from './editorContext'
+import './image.css'
 
 interface BlockComponentProps {
     contentState: ContentState
@@ -38,11 +39,18 @@ export const MediaComponent: React.FC<BlockComponentProps> = (
 export const LinkComponent: React.FC<DraftDecoratorComponentProps> = ({
     children,
     contentState,
-    entityKey
+    entityKey,
 }) => {
-    const { url } = contentState.getEntity(entityKey || "").getData()
+    const { url } = contentState.getEntity(entityKey || '').getData()
     return (
-        <a style={{ color: 'red', textDecoration: 'underline', cursor: "pointer" }} href={url}>
+        <a
+            style={{
+                color: 'red',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+            }}
+            href={url}
+        >
             {children}
         </a>
     )
@@ -93,44 +101,60 @@ export const ImageComponent: React.FC<BlockComponentProps> = ({
         textAlign: imgAlingment,
     }
 
-    // console.log(hover)
     return (
-        <>
-            <span
-                onMouseEnter={() => setHover(true)}
-                onMouseLeave={() => setHover(false)}
-            >
-                <p style={styled}>
-                    <img src={base64Contents} width={imgSize} alt={info} />
-                </p>
-                {hover ? (
-                    <div>
-                        <button onClick={() => setAlignment('left')}>L</button>
-                        <button onClick={() => setAlignment('center')}>
+        <div
+            className="box"
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+        >
+            <div style={styled}>
+                <img
+                    className="image"
+                    src={base64Contents}
+                    width={imgSize}
+                    alt={info}
+                />
+            </div>
+            {hover ? (
+                <div className="wrap-editor">
+                    <div className="img-editor">
+                        <button
+                            className="img-editor-btn"
+                            onClick={() => setAlignment('left')}
+                        >
+                            L
+                        </button>
+                        <button
+                            className="img-editor-btn"
+                            onClick={() => setAlignment('center')}
+                        >
                             C
                         </button>
-                        <button onClick={() => setAlignment('right')}>R</button>
                         <button
-                            onClick={() => {
-                                setSize(imgSize - 25)
-                            }}
+                            className="img-editor-btn"
+                            onClick={() => setAlignment('right')}
                         >
-                            -
+                            R
                         </button>
                         <button
-                            onClick={() => {
-                                setSize(imgSize + 25)
-                            }}
+                            className="img-editor-btn"
+                            onClick={() => setSize(imgSize + 10)}
                         >
                             +
                         </button>
-                        <p>
-                            #info width: {imgSize} alignment: {alignment}
-                        </p>
+                        <button
+                            className="img-editor-btn"
+                            onClick={() => setSize(imgSize - 10)}
+                        >
+                            -
+                        </button>
+                        <span className="img-info">
+                            imgsize: {imgSize}px alignment: {alignment}
+                        </span>
                     </div>
-                ) : null}
-            </span>
-        </>
+                </div>
+            ) : null}
+        </div>
     )
 }
 
@@ -140,9 +164,11 @@ export const LinkDecorator = new CompositeDecorator([
         strategy: (contentBlock, callBack, contentState) => {
             contentBlock.findEntityRanges((character) => {
                 const entityKey = character.getEntity()
-                return entityKey !== null && contentState.getEntity(entityKey).getType() === "link"
+                return (
+                    entityKey !== null &&
+                    contentState.getEntity(entityKey).getType() === 'link'
+                )
             }, callBack)
         },
     },
 ])
-
